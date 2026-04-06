@@ -1,6 +1,7 @@
 from langchain_groq import ChatGroq
 
 from dotenv import load_dotenv
+from pydantic import BaseModel,Field
 
 from typing import TypedDict,Annotated,Optional,Literal
 
@@ -8,26 +9,31 @@ load_dotenv()
 
 model = ChatGroq(model="llama-3.1-8b-instant")
 #  schema 
-class review(TypedDict):
-    key_themes = Annotated[list[str],'Write down all key themes discussed in the review in a list']
-    summary:Annotated[str,"A concise 1-2 sentence summary of the review"]
-    sentiment:Annotated[Literal['pos','neg'],"One word only (positive, negative, or neutral)"]
-    pros:Annotated[Optional[list[str]],"List of pros mentioned in the review"]
-    cons:Annotated[Optional[list[str]],"List of cons mentioned in the review"]
-    name:Annotated[Optional[str],"write the name of the person who wrote the review"]
+class review(BaseModel):
+    key_themes:list[str] = Field(description='Write down all key themes discussed in the review in a list')
+    # key_themes = Annotated[list[str],'Write down all key themes discussed in the review in a list']
+    summary:str=Field(description="A concise 1-2 sentence summary of the review")
+    # summary:Annotated[str,"A concise 1-2 sentence summary of the review"]
+    sentiment:Literal['pos','neg']=Field(description="One word only (pos,neg)")
+    # sentiment:Annotated[Literal['pos','neg'],"One word only (positive, negative, or neutral)"]
+    pros:Optional[list[str]]=Field(description="List of pros mentioned in the review")
+    # pros:Annotated[Optional[list[str]],"List of pros mentioned in the review"]
+    cons:Optional[list[str]]=Field(description="List of cons mentioned in the review")
+    # cons:Annotated[Optional[list[str]],"List of cons mentioned in the review"]
+    name:Optional[str]=Field(description="write the name of the person who wrote the review")
+    # name:Annotated[Optional[str],"write the name of the person who wrote the review"]
 structured_output = model.with_structured_output(
     review,
-    method="json_mode" 
-    # usually with claude
-    # method='fuction_caling' when wokring usually with open ai
-
+    method="json_mode"
 )
 result = structured_output.invoke("""
 You are an information extraction system.
 Return the output in valid JSON.
 
 
-
+- sentiment MUST be exactly "pos" or "neg"
+- name must be a single string (not a list)
+- Do NOT add extra fields
 Return the output in EXACTLY this format:
 {
   "summary": "...",
@@ -35,7 +41,7 @@ Return the output in EXACTLY this format:
   "pros": [...],
   "cons": [...],
   "key_themes": [...],
-   name:[...]
+   name:'...'
 }
 
 Do NOT include any other fields like pros, cons, or extra details.
@@ -51,4 +57,4 @@ review by rudraksh sharma
 
 """)
 # print(result['summary'])
-print(result['name'])
+print(result.name)
