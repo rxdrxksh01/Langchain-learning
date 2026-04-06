@@ -9,7 +9,7 @@ load_dotenv()
 model = ChatGroq(model="llama-3.1-8b-instant")
 #  schema 
 class review(TypedDict):
-    key_themes = Annotated[list[str],'Wrute down all key themes discussed in the review in a list']
+    key_themes = Annotated[list[str],'Write down all key themes discussed in the review in a list']
     summary:Annotated[str,"A concise 1-2 sentence summary of the review"]
     sentiment:Annotated[str,"One word only (positive, negative, or neutral)"]
     pros:Annotated[Optional[list[str]],"List of pros mentioned in the review"]
